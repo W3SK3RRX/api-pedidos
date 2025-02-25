@@ -1,14 +1,22 @@
 from django.db import models
 from users.models import User
 
+
 class Restaurant(models.Model):
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('ativo', 'Ativo'),
+        ('rejeitado', 'Rejeitado'),
+    ]
+    
     name = models.CharField(max_length=100)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="restaurants")
     address = models.TextField()
     phone = models.CharField(max_length=20, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.get_status_display()}"
 
 
 class MenuItem(models.Model):
