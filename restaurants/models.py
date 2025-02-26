@@ -1,6 +1,7 @@
 from django.db import models
 from users.models import User
-
+from django.utils.text import slugify
+import uuid
 
 class Restaurant(models.Model):
     STATUS_CHOICES = [
@@ -14,6 +15,13 @@ class Restaurant(models.Model):
     address = models.TextField()
     phone = models.CharField(max_length=20, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+    slug = models.SlugField(unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        """Gera um slug único para cada restaurante baseado no nome"""
+        if not self.slug:
+            self.slug = slugify(self.name) + "-" + str(uuid.uuid4())[:8]
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} - {self.get_status_display()}"
