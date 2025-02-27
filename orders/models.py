@@ -2,6 +2,7 @@ from django.db import models
 from users.models import User
 from restaurants.models import Restaurant, MenuItem
 
+
 class Order(models.Model):
     STATUS_CHOICES = [
         ('pendente', 'Pendente'),
@@ -28,3 +29,14 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity}x {self.menu_item.name}"
+    
+    
+class OrderAuditLog(models.Model):
+    order = models.ForeignKey("orders.Order", on_delete=models.CASCADE, related_name="audit_logs")
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    old_status = models.CharField(max_length=20)
+    new_status = models.CharField(max_length=20)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Pedido {self.order.id} atualizado de {self.old_status} para {self.new_status}"

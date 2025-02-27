@@ -2,16 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
-from orders.models import Order
-
+from orders.models import Order, OrderAuditLog
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from django.db.models import Sum, Count
+from datetime import datetime, timedelta
 
 class UpdateOrderStatusView(APIView):
-    """Permite que donos de restaurantes aceitem, rejeitem ou atualizem o status do pedido"""
-    
-    permission_classes = [IsAuthenticated]
-
     def post(self, request, pk):
-        """Permite atualizar o status de um pedido"""
         order = Order.objects.get(pk=pk)
 
         if order.restaurant.owner != request.user:
@@ -21,8 +19,17 @@ class UpdateOrderStatusView(APIView):
         if new_status not in ['em preparo', 'saiu para entrega', 'entregue', 'cancelado']:
             return Response({"error": "Status inválido."}, status=400)
 
+        # Criar um log de auditoria
+        OrderAuditLog.objects.create(
+            order=order,
+            user=request.user,
+            old_status=order.status,
+            new_status=new_status
+        )
+
         order.status = new_status
         order.save()
+
         return Response({"message": f"Pedido atualizado para '{order.status}'."})
 
 
@@ -39,11 +46,20 @@ class RestaurantStatsView(APIView):
             orders = Order.objects.filter(restaurant__owner=request.user)
 
         total_pedidos = orders.count()
-        total_vendas = sum(order.total for order in orders)
-        pedidos_por_status = orders.values('status').annotate(count=models.Count('id'))
+        total_vendas = orders.aggregate(Sum("total"))["total__sum"] or 0
+        pedidos_por_status = orders.values("status").annotate(count=Count("id"))
+
+        # Faturamento dos últimos 6 meses
+        today = datetime.today()
+        last_6_months = [today - timedelta(days=30*i) for i in range(6)]
+        faturamento_mensal = {
+            month.strftime("%Y-%m"): orders.filter(created_at__year=month.year, created_at__month=month.month).aggregate(Sum("total"))["total__sum"] or 0
+            for month in reversed(last_6_months)
+        }
 
         return Response({
             "total_pedidos": total_pedidos,
             "total_vendas": total_vendas,
-            "pedidos_por_status": pedidos_por_status
+            "pedidos_por_status": pedidos_por_status,
+            "faturamento_mensal": faturamento_mensal
         })

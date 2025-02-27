@@ -40,15 +40,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-     # Django REST Framework
+    # Django REST Framework
     'rest_framework',
     'drf_spectacular',
-    
+
+    # Django Channels (para WebSockets)
+    'channels',
+
     # Apps da API
     'users',
     'restaurants',
     'orders',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -63,10 +67,42 @@ MIDDLEWARE = [
 from datetime import timedelta
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.UserRateThrottle',  # Limita por usuário autenticado
+        'rest_framework.throttling.AnonRateThrottle',  # Limita usuários não autenticados
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '100/hour',  # Máximo de 100 requisições por hora por usuário
+        'anon': '10/minute', # Máximo de 10 requisições por minuto para anônimos
+    }
 }
+
+
+import os
+
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)  # Cria o diretório se não existir
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'api_access.log'),
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Token expira em 1 dia
@@ -94,7 +130,14 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'  # Para requisições HTTP normais
+ASGI_APPLICATION = 'config.asgi.application'  # Para WebSockets e tempo real
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",  # Em produção, substituir por Redis
+    },
+}
 
 
 # Database
