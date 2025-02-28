@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
@@ -7,6 +8,8 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.db.models import Sum, Count
 from datetime import datetime, timedelta
+from orders.api.serializers import OrderAuditLogSerializer
+from users.api.permissions import IsAdmin  # Permissão para admin
 
 class UpdateOrderStatusView(APIView):
     def post(self, request, pk):
@@ -63,3 +66,24 @@ class RestaurantStatsView(APIView):
             "pedidos_por_status": pedidos_por_status,
             "faturamento_mensal": faturamento_mensal
         })
+    
+
+class OrderAuditLogView(ListAPIView):
+    """Lista o histórico de mudanças de pedidos (apenas para admin)"""
+    
+    queryset = OrderAuditLog.objects.all().order_by("-timestamp")
+    serializer_class = OrderAuditLogSerializer
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get_queryset(self):
+        """Filtrar por usuário ou pedido, se passado na query string"""
+        queryset = super().get_queryset()
+        user_id = self.request.query_params.get("user")
+        order_id = self.request.query_params.get("order")
+        
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
+        if order_id:
+            queryset = queryset.filter(order_id=order_id)
+        
+        return queryset
