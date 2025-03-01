@@ -29,7 +29,7 @@ Siga os passos abaixo para rodar o projeto em seu ambiente local:
 Clone o repositório e acesse a pasta do projeto:
 
 ```bash
-git clone https://github.com/seu_usuario/api-pedidos.git
+git clone https://github.com/W3SK3RRX/api-pedidos.git
 cd api-pedidos
 ```
 
@@ -44,14 +44,14 @@ docker-compose up -d --build
 Esse comando irá:
 
 - Criar os containers para o banco de dados (PostgreSQL) e o backend (Django).
-- Rodar o servidor Django no container **django_api** e o banco de dados no container **postgres_db**.
+- Rodar o servidor Django no container **django_api_pedidos** e o banco de dados no container **db_api_pedidos**.
 
 ### 3. **Acessar o Container do Django**
 
 Depois que os containers estiverem em execução, entre no container do Django para rodar as migrações:
 
 ```bash
-docker exec -it django_api bash
+docker exec -it django_api_pedidos bash
 ```
 
 ### 4. **Executar as Migrações do Banco de Dados**
@@ -89,7 +89,7 @@ python manage.py runserver 0.0.0.0:8000
 Se você deseja acompanhar os logs do seu container para verificar a execução, use o comando:
 
 ```bash
-docker logs -f django_api
+docker logs -f django_api_pedidos
 ```
 
 ### 8. **Variáveis de Ambiente**
@@ -121,7 +121,7 @@ EMAIL_USE_TLS=True
 
 Verificar o status do banco de dados (PostgreSQL):
 ```bash
-docker-compose logs postgres_db
+docker-compose logs db_api_pedidos
 ```
 
 Parar e remover os containers:
