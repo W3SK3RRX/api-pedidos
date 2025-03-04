@@ -1,10 +1,18 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import RetrieveAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.exceptions import PermissionDenied
 from restaurants.models import Restaurant
 from restaurants.api.serializers import RestaurantSerializer
+
+
+class PendingRestaurantNotifications(APIView):
+    permission_classes = [IsAdminUser]  # Apenas admins podem acessar
+
+    def get(self, request):
+        pending_count = Restaurant.objects.filter(status="pending").count()
+        return Response({"pending_requests": pending_count})
 
 
 class ApproveRestaurantView(APIView):
