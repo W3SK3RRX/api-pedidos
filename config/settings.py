@@ -26,6 +26,10 @@ INSTALLED_APPS = [
     # Django REST Framework
     'rest_framework',
     'drf_spectacular',
+    'rest_framework_simplejwt.token_blacklist',
+
+    #Cors
+    'corsheaders',
 
     # Django Channels (para WebSockets)
     'channels',
@@ -38,6 +42,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -49,6 +54,12 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.UserRateThrottle',  # Limita por usuário autenticado
         'rest_framework.throttling.AnonRateThrottle',  # Limita usuários não autenticados
@@ -152,3 +163,27 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Diretórios adicionais 
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+CORS_ALLOW_ALL_ORIGINS = False  # Rejeita todas por padrão
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Frontend rodando no Vite
+    "http://127.0.0.1:5173",
+    "http://seu-site.com",  # Caso já tenha um domínio
+]
+CORS_ALLOW_CREDENTIALS = True  # Permite cookies/tokens serem enviados
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+
+CORS_ALLOW_HEADERS = [
+    "authorization",
+    "content-type",
+    "accept",
+    "x-requested-with",
+    "x-csrftoken",
+]

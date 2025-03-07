@@ -2,7 +2,7 @@ from users.models import AccessLog
 from django.utils.timezone import now
 
 class AccessLogMiddleware:
-    """Middleware para registrar logs de acesso"""
+    """Middleware para registrar logs de acesso apenas para usuários autenticados"""
     
     def __init__(self, get_response):
         self.get_response = get_response
@@ -10,6 +10,7 @@ class AccessLogMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
 
+        # Verifica se o usuário está autenticado
         if request.user.is_authenticated:
             AccessLog.objects.create(
                 user=request.user,
@@ -21,3 +22,4 @@ class AccessLogMiddleware:
             )
 
         return response
+

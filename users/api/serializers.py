@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from users.models import User, AccessLog
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -27,7 +28,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'phone', 'role']
+        fields = ['id', 'username', 'email', 'phone', 'role', 'is_2fa_enabled']
 
 
 class AccessLogSerializer(serializers.ModelSerializer):
@@ -36,3 +37,12 @@ class AccessLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccessLog
         fields = ["id", "user", "ip_address", "endpoint", "method", "status_code", "timestamp"]
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Adiciona o role do usuário ao token JWT"""
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data["role"] = self.user.role  # Adiciona o role ao payload do token
+        return data
