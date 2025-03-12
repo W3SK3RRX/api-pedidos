@@ -34,3 +34,18 @@ class RestaurantBySlugView(RetrieveAPIView):
     queryset = Restaurant.objects.filter(status='ativo')
     serializer_class = RestaurantSerializer
     lookup_field = 'slug'
+
+
+class MyRestaurantsView(APIView):
+    """Retorna a lista de restaurantes do usuário autenticado"""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        restaurants = Restaurant.objects.filter(owner=request.user)
+        
+        if not restaurants.exists():
+            return Response({"message": "Você ainda não cadastrou um restaurante."}, status=404)
+
+        serializer = RestaurantSerializer(restaurants, many=True)
+        return Response(serializer.data)

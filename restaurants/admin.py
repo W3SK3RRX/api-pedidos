@@ -3,10 +3,9 @@ from restaurants.models import Restaurant, MenuItem
 
 @admin.register(Restaurant)
 class RestaurantAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "owner", "status", "created_at")
+    list_display = ("id", "name", "owner", "status")
     list_filter = ("status",)
     search_fields = ("name", "owner__username")
-    ordering = ("-created_at",)
     actions = ["approve_restaurants"]
 
     def approve_restaurants(self, request, queryset):

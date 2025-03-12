@@ -12,13 +12,12 @@ class Restaurant(models.Model):
     ]
     
     name = models.CharField(max_length=100)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="restaurants")
+    owner = models.OneToOneField(User, on_delete=models.CASCADE, related_name="restaurant")
     address = models.TextField()
     phone = models.CharField(max_length=20, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
     slug = models.SlugField(unique=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
+    
     def save(self, *args, **kwargs):
         """Gera um slug único para cada restaurante baseado no nome"""
         if not self.slug:
@@ -27,6 +26,7 @@ class Restaurant(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.get_status_display()}"
+
 
 
 class MenuItem(models.Model):
