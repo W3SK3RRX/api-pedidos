@@ -27,7 +27,7 @@ services:
     volumes:
       - static_volume:/app/staticfiles
       - log_volume:/app/logs
-    command: ["sh", "/app/entrypoint.sh"]
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 volumes:
   postgres_data:

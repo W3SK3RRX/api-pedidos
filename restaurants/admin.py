@@ -1,5 +1,10 @@
 from django.contrib import admin
-from restaurants.models import Restaurant, MenuItem
+from restaurants.models import Restaurant, Address, MenuItem
+
+@admin.register(Address)
+class AddressAdmin(admin.ModelAdmin):
+    list_display = ("id", "street", "number", "neighborhood", "city", "cep")
+    search_fields = ("street", "neighborhood", "city", "cep")
 
 @admin.register(Restaurant)
 class RestaurantAdmin(admin.ModelAdmin):

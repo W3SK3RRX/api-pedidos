@@ -165,9 +165,9 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 CORS_ALLOW_ALL_ORIGINS = False  # Rejeita todas por padrão
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Frontend rodando no Vite
+    "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://seu-site.com",  # Caso já tenha um domínio
+    "http://seu-site.com",
 ]
 CORS_ALLOW_CREDENTIALS = True  # Permite cookies/tokens serem enviados
 
@@ -187,3 +187,7 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
     "x-csrftoken",
 ]
+
+# Add after your CORS settings
+CORS_ORIGIN_ALLOW_ALL = True  # Temporarily for debugging
+CORS_ALLOW_CREDENTIALS = True

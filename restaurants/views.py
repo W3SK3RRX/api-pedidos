@@ -3,8 +3,40 @@ from rest_framework.response import Response
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.exceptions import PermissionDenied
-from restaurants.models import Restaurant
+from restaurants.models import Restaurant, Address
+from rest_framework import status
 from restaurants.api.serializers import RestaurantSerializer
+
+
+class CreateRestaurantView(APIView):
+    """API para criar restaurantes"""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """Cria um restaurante associado ao usuário autenticado"""
+
+        print(f"🟢 Usuário autenticado: {request.user}")  # DEBUG
+        
+        serializer = RestaurantSerializer(data=request.data, context={"request": request})  
+
+        if serializer.is_valid():
+            address_data = serializer.validated_data.pop("address", None)
+            serializer.validated_data.pop("owner", None)  # 🔹 Removendo owner antes de criar o restaurante
+            
+            if not address_data:
+                return Response({"error": "O campo 'address' é obrigatório"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            address = Address.objects.create(**address_data)
+            restaurant = Restaurant.objects.create(
+                address=address, 
+                owner=request.user,  # 🔹 Agora passamos `owner` corretamente
+                **serializer.validated_data
+            )
+
+            return Response(RestaurantSerializer(restaurant).data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PendingRestaurantNotifications(APIView):

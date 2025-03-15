@@ -5,29 +5,23 @@ from restaurants.models import Restaurant
 from restaurants.api.serializers import RestaurantSerializer
 from restaurants.api.permissions import IsOwnerOrAdmin
 from restaurants.models import MenuItem
-from restaurants.api.serializers import MenuItemSerializer  
+from restaurants.api.serializers import MenuItemSerializer
+from rest_framework.response import Response
+from rest_framework import status
 
 class RestaurantViewSet(ModelViewSet):
     queryset = Restaurant.objects.all()
     serializer_class = RestaurantSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
-
-    def get_queryset(self):
-        """Admins veem todos os restaurantes. Donos só veem os seus."""
-        if self.request.user.role == 'admin':
-            return Restaurant.objects.all()
-        return Restaurant.objects.filter(owner=self.request.user)
+    permission_classes = [IsAuthenticated]  # 🔹 Verificar autenticação
 
     def perform_create(self, serializer):
-        """Restaurantes são criados como 'pendente' e vinculados ao usuário logado."""
+        """Testar se o usuário autenticado está sendo reconhecido"""
+        if not self.request.user or not self.request.user.is_authenticated:
+            return Response({"error": "Usuário não autenticado"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        print(f"Usuário autenticado: {self.request.user}")  # 🔹 Exibir no console
         serializer.save(owner=self.request.user, status='pendente')
 
-    def perform_update(self, serializer):
-        """Apenas o dono ou um admin pode editar o restaurante."""
-        restaurant = self.get_object()
-        if restaurant.owner != self.request.user and self.request.user.role != 'admin':
-            raise PermissionDenied("Você não tem permissão para modificar este restaurante.")
-        serializer.save()
 
 
 class MenuItemViewSet(ModelViewSet):
