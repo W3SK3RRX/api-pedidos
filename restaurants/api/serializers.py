@@ -5,7 +5,7 @@ from restaurants.models import Restaurant, MenuItem, Address
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = ["city", "neighborhood", "street", "number", "cep"]
+        fields = ["cep", "city", "neighborhood", "street", "number"]
 
 class RestaurantSerializer(serializers.ModelSerializer):
     address = AddressSerializer()

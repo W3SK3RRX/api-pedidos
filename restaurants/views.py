@@ -6,23 +6,33 @@ from rest_framework.exceptions import PermissionDenied
 from restaurants.models import Restaurant, Address
 from rest_framework import status
 from restaurants.api.serializers import RestaurantSerializer
+from restaurants.api.permissions import IsOwnerOrAdmin
 
+
+from rest_framework.permissions import IsAuthenticated
+from restaurants.api.permissions import IsOwnerOrAdmin
 
 class CreateRestaurantView(APIView):
     """API para criar restaurantes"""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]  # 🔹 Apenas usuários autenticados podem acessar
 
     def post(self, request):
         """Cria um restaurante associado ao usuário autenticado"""
 
-        print(f"🟢 Usuário autenticado: {request.user}")  # DEBUG
-        
+        print(f"🟢 Usuário autenticado: {request.user} (Role: {request.user.role})")  # 🔹 Debug
+
+        # Verificar se a role está correta no backend
+        if request.user.role not in ["admin", "funcionario"]:
+            print("❌ Bloqueado por falta de permissão!")  # 🔹 Debug
+            return Response({"detail": "Apenas funcionários ou administradores podem criar restaurantes."},
+                            status=status.HTTP_403_FORBIDDEN)
+
         serializer = RestaurantSerializer(data=request.data, context={"request": request})  
 
         if serializer.is_valid():
             address_data = serializer.validated_data.pop("address", None)
-            serializer.validated_data.pop("owner", None)  # 🔹 Removendo owner antes de criar o restaurante
+            serializer.validated_data.pop("owner", None)  # 🔹 Evita erro de duplicação
             
             if not address_data:
                 return Response({"error": "O campo 'address' é obrigatório"}, status=status.HTTP_400_BAD_REQUEST)
@@ -34,6 +44,7 @@ class CreateRestaurantView(APIView):
                 **serializer.validated_data
             )
 
+            print(f"🟢 Restaurante criado com sucesso: {restaurant}")  # 🔹 Debug
             return Response(RestaurantSerializer(restaurant).data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
