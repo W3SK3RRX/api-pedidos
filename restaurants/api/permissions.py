@@ -4,35 +4,35 @@ class IsRestaurantOwner(BasePermission):
     """Permite que apenas o dono do restaurante faça alterações"""
 
     def has_permission(self, request, view):
-        # Permitir GET para qualquer autenticado, mas POST, PUT e DELETE só para donos
+        # GET é permitido para qualquer usuário autenticado
         if request.method in SAFE_METHODS:
             return request.user.is_authenticated
-        return False  # 🔹 Apenas donos podem modificar
+
+        # POST, PUT, DELETE são permitidos apenas se for dono do objeto
+        return request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        # Apenas o dono do restaurante pode modificar
-        return request.user.is_authenticated and obj.owner == request.user
+        # Apenas o dono pode modificar ou deletar
+        return request.user == obj.owner
 
 
 class IsOwnerOrAdmin(BasePermission):
     """Permite que apenas o dono do restaurante ou um administrador faça alterações"""
 
     def has_permission(self, request, view):
-        # Apenas usuários autenticados podem acessar
         if not request.user.is_authenticated:
-            return False
+            return False  # Bloquear usuários não autenticados
 
-        # Admins podem acessar qualquer coisa
         if request.user.role == "admin":
-            return True
+            return True  # Admins podem modificar qualquer coisa
 
-        # Para GET, usuários veem apenas seus próprios restaurantes
+        # Permitir GET para todos os usuários autenticados
         if request.method in SAFE_METHODS:
             return True
 
-        # Para outros métodos (POST, PUT, DELETE), apenas donos podem acessar
-        return False
+        # Permitir PUT e DELETE (mas o controle real será no `has_object_permission`)
+        return request.method in ["PUT", "DELETE"]
 
     def has_object_permission(self, request, view, obj):
-        # Apenas o dono ou admin pode modificar ou deletar
         return request.user.role == "admin" or obj.owner == request.user
+

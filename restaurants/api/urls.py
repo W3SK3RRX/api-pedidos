@@ -10,15 +10,13 @@ from restaurants.views import (
 )
 
 router = DefaultRouter()
-#router.register(r'restaurants', RestaurantViewSet, basename="restaurants")
-#router.register(r'menu', MenuItemViewSet, basename='menu')
+router.register(r'restaurants', RestaurantViewSet, basename="restaurants")  # 🔹 Restaurando a rota principal
+router.register(r'menu', MenuItemViewSet, basename='menu')
 
 urlpatterns = [
-    # 🔹 Mover esta linha para antes do include(router.urls)
     path('create/', CreateRestaurantView.as_view(), name="create-restaurant"),
-
-    path('', include(router.urls)),  # 🔹 O `DefaultRouter` precisa vir depois das rotas personalizadas
-
+    path('', include(router.urls)),  # 🔹 Registrar todas as rotas do `ViewSet`
+    
     path("admin/pending-notifications/", PendingRestaurantNotifications.as_view(), name="pending-notifications"),
     path('<int:pk>/approve/', ApproveRestaurantView.as_view(), name='approve-restaurant'),
     path('slug/<str:slug>/', RestaurantBySlugView.as_view(), name='restaurant-by-slug'),

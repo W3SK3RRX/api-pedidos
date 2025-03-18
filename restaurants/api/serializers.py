@@ -5,30 +5,33 @@ from restaurants.models import Restaurant, MenuItem, Address
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = ["cep", "city", "neighborhood", "street", "number"]
+        fields = ["city", "neighborhood", "street", "number", "cep"]
 
 class RestaurantSerializer(serializers.ModelSerializer):
-    address = AddressSerializer()
-    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    address = AddressSerializer()  # 🔹 Serializador aninhado
 
     class Meta:
         model = Restaurant
         fields = [
             "id", "name", "description", "category", "owner",
-            "address", "phone", "image", "status", "slug"
+            "address", "phone", "image", "status", "slug", "created_at"
         ]
+        read_only_fields = ["owner", "status", "slug", "created_at"]  # 🔹 Evita alteração desses campos
 
-    def create(self, validated_data):
-        """Criar restaurante com endereço"""
-        address_data = validated_data.pop('address', None)
+    def update(self, instance, validated_data):
+        """Atualiza restaurante e endereço"""
+        address_data = validated_data.pop("address", None)  # 🔹 Extraindo os dados do endereço
         
-        if not address_data:
-            raise serializers.ValidationError({"address": "O campo endereço é obrigatório."})
+        # Atualizar os dados do restaurante
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
 
-        address = Address.objects.create(**address_data)
-        restaurant = Restaurant.objects.create(address=address, **validated_data)
-        return restaurant
+        # Se o endereço foi enviado, atualizar separadamente
+        if address_data:
+            Address.objects.filter(id=instance.address.id).update(**address_data)
 
+        instance.save()
+        return instance
 
 
 class MenuItemSerializer(serializers.ModelSerializer):

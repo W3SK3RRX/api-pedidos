@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from restaurants.models import Restaurant
 from restaurants.api.serializers import RestaurantSerializer
-from restaurants.api.permissions import IsOwnerOrAdmin
+from restaurants.api.permissions import IsOwnerOrAdmin, IsRestaurantOwner
 from restaurants.models import MenuItem
 from restaurants.api.serializers import MenuItemSerializer
 
@@ -13,7 +13,7 @@ class RestaurantViewSet(ModelViewSet):
     
     queryset = Restaurant.objects.all()
     serializer_class = RestaurantSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    permission_classes = [IsAuthenticated, IsOwnerOrAdmin]  # 🔹 REMOVA `IsRestaurantOwner`
 
     def get_queryset(self):
         """Admins veem todos os restaurantes. Donos só veem os seus."""
