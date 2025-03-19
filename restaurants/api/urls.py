@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from restaurants.api.viewsets import RestaurantViewSet, MenuItemViewSet
+from restaurants.api.viewsets import RestaurantViewSet, MenuItemViewSet, CategoryViewSet
 from restaurants.views import (
     ApproveRestaurantView,
     RestaurantBySlugView,
@@ -11,7 +11,8 @@ from restaurants.views import (
 
 router = DefaultRouter()
 router.register(r'restaurants', RestaurantViewSet, basename="restaurants")  # 🔹 Restaurando a rota principal
-router.register(r'menu', MenuItemViewSet, basename='menu')
+router.register(r"menu-items", MenuItemViewSet, basename="menu-items")
+router.register(r"categories", CategoryViewSet, basename="categories")
 
 urlpatterns = [
     path('create/', CreateRestaurantView.as_view(), name="create-restaurant"),
